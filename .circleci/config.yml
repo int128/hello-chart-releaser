@@ -1,0 +1,32 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - run: mkdir -p ~/bin
+      - run: echo 'export PATH="$HOME/bin:$PATH"' >> $BASH_ENV
+      # https://github.com/helm/chart-releaser
+      - run: |
+          curl -L -o /tmp/cr.tgz https://github.com/helm/chart-releaser/releases/download/v1.0.0-beta.1/chart-releaser_1.0.0-beta.1_linux_amd64.tar.gz
+          tar -xv -C /tmp -f /tmp/cr.tgz
+          mv /tmp/cr ~/bin/cr
+      # https://helm.sh/docs/intro/install/
+      - run: |
+          curl -L -o /tmp/helm.tgz https://get.helm.sh/helm-v3.1.2-linux-amd64.tar.gz
+          tar -xv -C /tmp -f /tmp/helm.tgz
+          mv /tmp/linux-amd64/helm ~/bin/helm
+      # https://github.com/int128/ghcp
+      - run: |
+          curl -fL -o /tmp/ghcp.zip https://github.com/int128/ghcp/releases/download/v1.8.0/ghcp_linux_amd64.zip
+          unzip /tmp/ghcp.zip -d ~/bin
+      - checkout
+      - run: make
+      - run: make release
+
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build:
+          context: open-source
